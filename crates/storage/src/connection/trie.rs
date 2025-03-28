@@ -832,7 +832,7 @@ impl StoredNode {
 
     /// Writes the [StoredNode] into `buffer` and returns the number of bytes
     /// written.
-    fn encode(&self, buffer: &mut [u8]) -> Result<usize, bincode::error::EncodeError> {
+    pub fn encode(&self, buffer: &mut [u8]) -> Result<usize, bincode::error::EncodeError> {
         let helper = match self {
             Self::Binary { left, right } => StoredSerde::Binary {
                 left: *left,
@@ -868,7 +868,7 @@ impl StoredNode {
         bincode::encode_into_slice(helper, buffer, Self::CODEC_CFG)
     }
 
-    fn decode(data: &[u8]) -> Result<Self, bincode::error::DecodeError> {
+    pub fn decode(data: &[u8]) -> Result<Self, bincode::error::DecodeError> {
         let helper = bincode::borrow_decode_from_slice(data, Self::CODEC_CFG)?;
 
         let node = match helper.0 {

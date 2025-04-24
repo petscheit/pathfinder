@@ -42,25 +42,27 @@ impl FeltHash for TruncatedKeccakHash {
     }
 }
 
-/// Implements the truncated Keccak hash function using a mask approach
-fn keccak_hash(a: Felt, b: Felt) -> Felt {
-    // The mask keeps only the top 160 bits (zeros out the bottom 96 bits)
-    
-    // Convert inputs to bytes and apply mask (keep only first 20 bytes)
-    let mut masked_a = [0u8; 32];
-    let mut masked_b = [0u8; 32];
-    masked_a[0..20].copy_from_slice(&a.to_be_bytes()[0..20]);
-    masked_b[0..20].copy_from_slice(&b.to_be_bytes()[0..20]);
-    
-    // Hash the masked inputs
+/// Implements the truncated Keccak hash function: `keccak(BE(a) || BE(b)) >> 96`.
+/// Takes the full big-endian representations of `a` and `b`, concatenates them,
+/// computes the Keccak-256 hash, and returns the top 160 bits (right-shifted by 96 bits).
+pub fn keccak_hash(a: Felt, b: Felt) -> Felt {
+    // Get the full big-endian byte representations of the inputs
+    let a_bytes = a.to_be_bytes();
+    let b_bytes = b.to_be_bytes();
+
+    // Compute the Keccak-256 hash of the concatenated bytes
     let mut keccak = Keccak::v256();
     let mut output = [0u8; 32];
-    keccak.update(&masked_a);
-    keccak.update(&masked_b);
+    keccak.update(&a_bytes);
+    keccak.update(&b_bytes);
     keccak.finalize(&mut output);
-    
-    // Apply mask to output and convert to Felt
-    let mut masked_output = [0u8; 32];
-    masked_output[0..20].copy_from_slice(&output[0..20]);
-    Felt::from_be_bytes(masked_output).unwrap()
+
+    // Take the top 160 bits (first 20 bytes) of the hash result
+    // and place them into the lower 20 bytes of the result Felt.
+    // This effectively performs a right shift by 96 bits.
+    let mut result_bytes = [0u8; 32];
+    result_bytes[12..32].copy_from_slice(&output[0..20]);
+
+    // Convert the result bytes (big-endian) back to Felt
+    Felt::from_be_bytes(result_bytes).expect("Conversion from BE bytes should always succeed")
 }

@@ -13,7 +13,7 @@ use crate::algebra::field::montfelt::MontFelt;
 /// A field element is a number 0..p-1 with p=2^{251}+17*2^{192}+1, and it forms
 /// the basic building block of most Starknet interactions.
 #[derive(Clone, Copy, PartialEq, Hash, Eq, PartialOrd, Ord)]
-pub struct Felt([u8; 32]);
+pub struct Felt(pub [u8; 32]);
 
 const MODULUS_U64: [u64; 4] = [576460752303423505u64, 0, 0, 1];
 
